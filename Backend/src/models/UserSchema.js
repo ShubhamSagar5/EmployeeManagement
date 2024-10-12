@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
-const valiadator = require('validator')
-
+const validator = require('validator')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const userSchema  = new mongoose.Schema({
     firstName:{
@@ -23,7 +24,7 @@ const userSchema  = new mongoose.Schema({
         trim:true,
         unique:true,
         validate(value){
-            if(!valiadator.isEmail(value)){
+            if(!validator.isEmail(value)){
                 throw new Error("please provide valid email")
             }
         }
@@ -33,28 +34,43 @@ const userSchema  = new mongoose.Schema({
         required:true,
         trim:true,
         validate(value){
-            if(!valiadator.isStrongPassword(value)){
+            if(!validator.isStrongPassword(value)){
                 throw new Error("Please provide strong password")
             }
         }
     },
     mobile:{
-        type:Number,
+        type:String,
         required:true,
-        trim:true,
-        min:10,
-        max:10
+        validate(value){
+            if(!validator.isMobilePhone(value)){
+                throw new Error("Please Provide Valid Phone Number")
+            }
+        }
     }
 },{
     timestamps:true
 })
 
 
-// userSchema.methods.validatePassword =  async function(passwordInputbyUser){
-//     const user = this 
-//     const password
-// }
+userSchema.methods.validatePassword = async function(passwordInputByUser){
+    const user = this 
+    const hashPassword = user.password
+    const isPasswordValid = await bcrypt.compare(passwordInputByUser,hashPassword) 
 
+    console.log(isPasswordValid)
+    return isPasswordValid
+
+}
+
+userSchema.methods.generateJWT = async function(){
+    const user = this 
+
+    const getJWT = await jwt.sign({_id:user._id},process.env.JWTSECRET,{expiresIn:"1d"}) 
+
+    return getJWT
+
+}
 
 const User = mongoose.model("User",userSchema) 
 
