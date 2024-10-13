@@ -20,6 +20,17 @@ const validateSignUpData = (req) => {
 
 }
 
+const validateUpdateData = (req) => {
+
+    const {firstName,lastName,email,mobile} = req.body 
+
+    if(!validator.isEmail(email)){
+        throw new Error ('Please Provide Valid Email')
+    }
+
+
+
+}
 
 const validateLoginData = (req) => {
 
@@ -34,6 +45,7 @@ const validateLoginData = (req) => {
 
 module.exports = {
 validateSignUpData,
-validateLoginData
+validateLoginData,
+validateUpdateData
 }
 

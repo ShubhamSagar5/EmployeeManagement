@@ -1,5 +1,5 @@
 const { User } = require("../models/UserSchema")
-const { validateSignUpData, validateLoginData } = require("../utils/validate")
+const { validateSignUpData, validateLoginData, validateUpdateData } = require("../utils/validate")
 const bcrypt = require('bcrypt')
 
 
@@ -37,7 +37,6 @@ const SignUp = async(req,res)=>{
     }
 }
 
-
 const login = async(req,res)=>{
     try {
         
@@ -55,7 +54,6 @@ const login = async(req,res)=>{
 
         const isPasswordValid = await user.validatePassword(password) 
 
-        console.log(isPasswordValid)
 
         if(!isPasswordValid){
             throw new Error ("Please Provide Valid Password")
@@ -104,9 +102,119 @@ const deleteUser = async(req,res) => {
     }
 }
 
+const getUser = async(req,res) => {
+    try {
+        
+        const {id} = req.body 
+
+        const user = await User.findById(id) 
+
+        if(!user){
+            throw new Error("Please Provide Valid ID")
+        }
+
+        return res.status(200).json({
+            success:true,
+            message:'User Data Profile',
+            data:user
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+const getListOfUser = async(req,res)=>{
+    try {
+    
+        const UserList = await User.find() 
+
+        return res.status(200).json({
+            success:true,
+            message:'User List',
+            data:UserList
+        })
+           
+
+    } catch (error) {
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        })
+        
+    }
+}
+
+
+const updateUser = async(req,res) => {
+    try {
+        
+
+        const {id} = req.params
+
+        const {firstName,lastName,email,password,mobile} = req.body
+
+        validateUpdateData(req,res) 
+
+        const user = await User.findByIdAndUpdate(id,{
+            firstName,
+            lastName,
+            email,
+            mobile
+        },{new:true}).select('-password')
+ 
+
+        if(!user){
+            throw new Error("User Not Found Please Provide Valid Id")
+        }
+
+        return res.status(200).json({
+            success:true,
+            message:'User Data Update Successfully',
+            data:user
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+const logout = async(req,res) => {
+    try {
+        
+        const {firstName} = req.user 
+        console.log(req.user)
+
+        res.clearCookie("Token")
+        return res.status(200).json({
+            success:true,
+            message:`${firstName} is Logout Successfully`
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+
+
+
 
 module.exports = {
     SignUp,
     login,
-    deleteUser
+    deleteUser,
+    getUser,
+    getListOfUser,
+    updateUser,
+    logout
 }
